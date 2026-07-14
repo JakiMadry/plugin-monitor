@@ -1,6 +1,7 @@
 import fp from "fastify-plugin";
 import type { FastifyInstance } from "fastify";
 import { Queue } from "bullmq";
+import Redis from "ioredis";
 import { config } from "../config.js";
 
 declare module "fastify" {
@@ -13,9 +14,16 @@ declare module "fastify" {
   }
 }
 
+function createConnection(): any {
+  return new Redis(config.redis.url, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  });
+}
+
 function createQueue(name: string) {
   return new Queue(name, {
-    connection: { url: config.redis.url },
+    connection: createConnection(),
     defaultJobOptions: {
       removeOnComplete: { count: 1000 },
       removeOnFail: { count: 5000 },

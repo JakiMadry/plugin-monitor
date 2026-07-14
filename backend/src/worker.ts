@@ -14,9 +14,16 @@ import {
 import { config } from "./config.js";
 
 import { Queue } from "bullmq";
+import Redis from "ioredis";
 
-const connection = { url: config.redis.url };
-const notificationsQueue = new Queue("notifications", { connection });
+function createConnection(): any {
+  return new Redis(config.redis.url, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  });
+}
+
+const notificationsQueue = new Queue("notifications", { connection: createConnection() });
 
 const PAYWALL_EVENT_TYPES = new Set([
   "payment_initiated",
@@ -105,7 +112,7 @@ const ingestWorker = new Worker(
       `[ingest] Processed ${events.length} events for shop ${shopId} (${paywall.length} paywall, ${plugin.length} plugin)`
     );
   },
-  { connection, concurrency: 10 }
+  { connection: createConnection(), concurrency: 10 }
 );
 
 // ─── Services ──────────────────────────────────────────
@@ -132,7 +139,7 @@ const hazardPullWorker = new Worker(
       throw error;
     }
   },
-  { connection, concurrency: 1 }
+  { connection: createConnection(), concurrency: 1 }
 );
 
 // ─── Notifications Worker ───────────────────────────────
@@ -162,7 +169,7 @@ const notificationsWorker = new Worker(
         console.warn(`[notifications] Unknown notification type: ${type}`);
     }
   },
-  { connection, concurrency: 5 }
+  { connection: createConnection(), concurrency: 5 }
 );
 
 // ─── Graceful shutdown ──────────────────────────────────
