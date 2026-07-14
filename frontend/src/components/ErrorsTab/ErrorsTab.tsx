@@ -8,10 +8,10 @@ import {
   SegmentedControl,
   SimpleGrid,
   Pagination,
-  Collapse,
   Code,
   ActionIcon,
   Tooltip,
+  Box,
 } from "@mantine/core";
 import { IconAlertTriangle, IconBug, IconInfoCircle, IconFlame, IconCheck } from "@tabler/icons-react";
 import { DataTable } from "mantine-datatable";
@@ -19,11 +19,24 @@ import { usePluginEvents, useErrorStats, useMarkEventRead } from "../../api/hook
 import { useAppStore } from "../../stores/useAppStore";
 import dayjs from "dayjs";
 
+const cardStyle = {
+  border: "1px solid #dadada",
+  borderRadius: "0.375rem",
+  backgroundColor: "#fff",
+};
+
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "red",
   error: "orange",
   warning: "yellow",
   info: "blue",
+};
+
+const SEVERITY_HEX: Record<string, string> = {
+  critical: "#f50084",
+  error: "#fdb82b",
+  warning: "#fdb82b",
+  info: "#17a2b8",
 };
 
 const SEVERITY_ICONS: Record<string, typeof IconBug> = {
@@ -64,19 +77,28 @@ export function ErrorsTab() {
         {["critical", "error", "warning", "info"].map((sev) => {
           const Icon = SEVERITY_ICONS[sev];
           const stat = statsMap[sev];
+          const hex = SEVERITY_HEX[sev] || "#a4a6b3";
           return (
             <Card
               key={sev}
-              withBorder
-              style={{ cursor: "pointer", borderColor: severity === sev ? `var(--mantine-color-${SEVERITY_COLORS[sev]}-5)` : undefined }}
+              style={{
+                ...cardStyle,
+                cursor: "pointer",
+                borderTop: `3px solid ${hex}`,
+                borderColor: severity === sev ? hex : "#dadada",
+                borderTopColor: hex,
+              }}
+              p="md"
               onClick={() => { setSeverity(severity === sev ? "" : sev); setPage(1); }}
             >
               <Group>
-                <Icon size={24} color={`var(--mantine-color-${SEVERITY_COLORS[sev]}-6)`} />
+                <Box style={{ backgroundColor: `${hex}15`, borderRadius: "0.375rem", padding: 8 }}>
+                  <Icon size={24} color={hex} />
+                </Box>
                 <div>
-                  <Text size="xs" c="dimmed" tt="capitalize">{sev}</Text>
+                  <Text size="xs" c="dimmed" tt="capitalize" fw={500}>{sev}</Text>
                   <Group gap="xs">
-                    <Text fw={700} size="xl">{stat?.count || 0}</Text>
+                    <Text fw={700} size="xl" style={{ color: "#171a1e" }}>{stat?.count || 0}</Text>
                     {stat?.unread > 0 && (
                       <Badge color={SEVERITY_COLORS[sev]} size="sm">{stat.unread} nowych</Badge>
                     )}
@@ -99,6 +121,12 @@ export function ErrorsTab() {
           { value: "warning", label: "Warning" },
           { value: "info", label: "Info" },
         ]}
+        styles={{
+          root: {
+            backgroundColor: "#f7f8fc",
+            border: "1px solid #dadada",
+          },
+        }}
       />
 
       {/* Events table */}
@@ -158,7 +186,7 @@ export function ErrorsTab() {
         onRowClick={({ record }) => toggleExpanded(record.id)}
         rowExpansion={{
           content: ({ record }) => (
-            <Stack p="md" gap="xs">
+            <Stack p="md" gap="xs" style={{ backgroundColor: "#f7f8fc" }}>
               <Text size="sm"><strong>Pelen komunikat:</strong> {record.message}</Text>
               {record.source && <Text size="sm"><strong>Zrodlo:</strong> {record.source}</Text>}
               {record.metadata && (

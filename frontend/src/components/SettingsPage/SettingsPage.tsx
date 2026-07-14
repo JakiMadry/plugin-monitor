@@ -38,6 +38,12 @@ import {
 } from "../../api/hooks";
 import dayjs from "dayjs";
 
+const cardStyle = {
+  border: "1px solid #dadada",
+  borderRadius: "0.375rem",
+  backgroundColor: "#fff",
+};
+
 const PLATFORMS = [
   { value: "woocommerce", label: "WooCommerce" },
   { value: "magento", label: "Magento" },
@@ -64,7 +70,14 @@ export function SettingsPage() {
 
   return (
     <Tabs defaultValue="shops">
-      <Tabs.List mb="md">
+      <Tabs.List
+        mb="md"
+        styles={{
+          list: {
+            borderBottom: "2px solid #dadada",
+          },
+        }}
+      >
         <Tabs.Tab value="shops" leftSection={<IconBuildingStore size={16} />}>
           Sklepy
         </Tabs.Tab>
@@ -85,7 +98,7 @@ export function SettingsPage() {
   );
 }
 
-// ─── Shops Section ─────────────────────────────────────
+// --- Shops Section ---
 
 function ShopsSection() {
   const { data: shops, isLoading } = useShops();
@@ -93,9 +106,9 @@ function ShopsSection() {
 
   return (
     <Stack>
-      <Card withBorder p="md">
+      <Card style={cardStyle} p="md">
         <Group justify="space-between" mb="md">
-          <Title order={5}>Sklepy</Title>
+          <Title order={5} style={{ color: "#171a1e" }}>Sklepy</Title>
           <Text size="sm" c="dimmed">Sklepy rejestruja sie automatycznie przy pierwszym kontakcie z wtyczki.</Text>
         </Group>
 
@@ -133,14 +146,14 @@ function ShopsSection() {
             },
           ]}
           highlightOnHover
-          noRecordsText="Brak sklepow — pojawia sie po pierwszym kontakcie z wtyczki"
+          noRecordsText="Brak sklepow -- pojawia sie po pierwszym kontakcie z wtyczki"
         />
       </Card>
     </Stack>
   );
 }
 
-// ─── Users Section ─────────────────────────────────────
+// --- Users Section ---
 
 function UsersSection() {
   const { data: users, isLoading } = useUsers();
@@ -163,10 +176,15 @@ function UsersSection() {
 
   return (
     <Stack>
-      <Card withBorder p="md">
+      <Card style={cardStyle} p="md">
         <Group justify="space-between" mb="md">
-          <Title order={5}>Uzytkownicy</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={() => setModalOpen(true)} size="sm">
+          <Title order={5} style={{ color: "#171a1e" }}>Uzytkownicy</Title>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => setModalOpen(true)}
+            size="sm"
+            style={{ backgroundColor: "#007ecc", borderRadius: "0.375rem" }}
+          >
             Dodaj uzytkownika
           </Button>
         </Group>
@@ -179,7 +197,7 @@ function UsersSection() {
             {
               accessor: "displayName",
               title: "Nazwa",
-              render: ({ displayName }) => displayName || <Text size="sm" c="dimmed">—</Text>,
+              render: ({ displayName }) => displayName || <Text size="sm" c="dimmed">--</Text>,
             },
             {
               accessor: "role",
@@ -196,6 +214,9 @@ function UsersSection() {
                   size="xs"
                   w={120}
                   disabled={record.id === me?.user?.id}
+                  styles={{
+                    input: { borderColor: "#dadada" },
+                  }}
                 />
               ),
             },
@@ -235,6 +256,7 @@ function UsersSection() {
             value={newUser.email}
             onChange={(e) => setNewUser({ ...newUser, email: e.currentTarget.value })}
             required
+            styles={{ input: { borderColor: "#dadada" } }}
           />
           <PasswordInput
             label="Haslo"
@@ -242,20 +264,27 @@ function UsersSection() {
             value={newUser.password}
             onChange={(e) => setNewUser({ ...newUser, password: e.currentTarget.value })}
             required
+            styles={{ input: { borderColor: "#dadada" } }}
           />
           <TextInput
             label="Nazwa wyswietlana"
             placeholder="Jan Kowalski"
             value={newUser.displayName}
             onChange={(e) => setNewUser({ ...newUser, displayName: e.currentTarget.value })}
+            styles={{ input: { borderColor: "#dadada" } }}
           />
           <Select
             label="Rola"
             data={ROLES}
             value={newUser.role}
             onChange={(v) => setNewUser({ ...newUser, role: v || "viewer" })}
+            styles={{ input: { borderColor: "#dadada" } }}
           />
-          <Button onClick={handleCreate} loading={createUser.isPending}>
+          <Button
+            onClick={handleCreate}
+            loading={createUser.isPending}
+            style={{ backgroundColor: "#007ecc", borderRadius: "0.375rem" }}
+          >
             Utworz
           </Button>
         </Stack>
@@ -264,7 +293,7 @@ function UsersSection() {
   );
 }
 
-// ─── Notifications Section ─────────────────────────────
+// --- Notifications Section ---
 
 function NotificationsSection() {
   const { data: prefs, isLoading } = useNotificationPrefs();
@@ -307,10 +336,15 @@ function NotificationsSection() {
 
   return (
     <Stack>
-      <Card withBorder p="md">
+      <Card style={cardStyle} p="md">
         <Group justify="space-between" mb="md">
-          <Title order={5}>Powiadomienia email</Title>
-          <Button leftSection={<IconPlus size={16} />} onClick={() => setAddOpen(true)} size="sm">
+          <Title order={5} style={{ color: "#171a1e" }}>Powiadomienia email</Title>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => setAddOpen(true)}
+            size="sm"
+            style={{ backgroundColor: "#007ecc", borderRadius: "0.375rem" }}
+          >
             Dodaj regule
           </Button>
         </Group>
@@ -381,6 +415,7 @@ function NotificationsSection() {
             data={SECTIONS}
             value={newPref.section}
             onChange={(v) => setNewPref({ ...newPref, section: v || "all" })}
+            styles={{ input: { borderColor: "#dadada" } }}
           />
           <Select
             label="Sklep"
@@ -389,13 +424,18 @@ function NotificationsSection() {
             onChange={(v) => setNewPref({ ...newPref, shopId: v || "" })}
             searchable
             clearable
+            styles={{ input: { borderColor: "#dadada" } }}
           />
           <Switch
             label="Powiadomienia email"
             checked={newPref.notifyEmail}
             onChange={(e) => setNewPref({ ...newPref, notifyEmail: e.currentTarget.checked })}
           />
-          <Button onClick={handleAdd} loading={setPref.isPending}>
+          <Button
+            onClick={handleAdd}
+            loading={setPref.isPending}
+            style={{ backgroundColor: "#007ecc", borderRadius: "0.375rem" }}
+          >
             Dodaj
           </Button>
         </Stack>

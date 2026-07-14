@@ -9,6 +9,7 @@ import {
   Code,
   Badge,
   Select,
+  Box,
 } from "@mantine/core";
 import { IconCreditCard, IconArrowBack, IconCash, IconReceipt } from "@tabler/icons-react";
 import { DataTable } from "mantine-datatable";
@@ -25,6 +26,12 @@ import { usePaywallEvents, usePaywallStats } from "../../api/hooks";
 import { useAppStore } from "../../stores/useAppStore";
 import dayjs from "dayjs";
 
+const cardStyle = {
+  border: "1px solid #dadada",
+  borderRadius: "0.375rem",
+  backgroundColor: "#fff",
+};
+
 const EVENT_ICONS: Record<string, typeof IconCreditCard> = {
   payment_completed: IconCash,
   payment_initiated: IconCreditCard,
@@ -39,6 +46,14 @@ const EVENT_COLORS: Record<string, string> = {
   payment_failed: "red",
   refund_completed: "orange",
   refund_initiated: "yellow",
+};
+
+const EVENT_HEX: Record<string, string> = {
+  payment_completed: "#00c259",
+  payment_initiated: "#007ecc",
+  payment_failed: "#f50084",
+  refund_completed: "#fdb82b",
+  refund_initiated: "#fdb82b",
 };
 
 export function PaywallTab() {
@@ -65,21 +80,27 @@ export function PaywallTab() {
         {stats?.map((stat) => {
           const Icon = EVENT_ICONS[stat.eventType] || IconReceipt;
           const color = EVENT_COLORS[stat.eventType] || "gray";
+          const hex = EVENT_HEX[stat.eventType] || "#a4a6b3";
           return (
             <Card
               key={stat.eventType}
-              withBorder
               style={{
+                ...cardStyle,
                 cursor: "pointer",
-                borderColor: eventType === stat.eventType ? `var(--mantine-color-${color}-5)` : undefined,
+                borderTop: `3px solid ${hex}`,
+                borderColor: eventType === stat.eventType ? hex : "#dadada",
+                borderTopColor: hex,
               }}
+              p="md"
               onClick={() => { setEventType(eventType === stat.eventType ? null : stat.eventType); setPage(1); }}
             >
               <Group>
-                <Icon size={24} color={`var(--mantine-color-${color}-6)`} />
+                <Box style={{ backgroundColor: `${hex}15`, borderRadius: "0.375rem", padding: 8 }}>
+                  <Icon size={24} color={hex} />
+                </Box>
                 <div>
-                  <Text size="xs" c="dimmed">{stat.eventType.replace(/_/g, " ")}</Text>
-                  <Text fw={700} size="xl">{Number(stat.count).toLocaleString()}</Text>
+                  <Text size="xs" c="dimmed" fw={500}>{stat.eventType.replace(/_/g, " ")}</Text>
+                  <Text fw={700} size="xl" style={{ color: "#171a1e" }}>{Number(stat.count).toLocaleString()}</Text>
                   <Text size="xs" c="dimmed">
                     Ostatni: {dayjs(stat.lastOccurred).format("DD.MM HH:mm")}
                   </Text>
@@ -92,15 +113,15 @@ export function PaywallTab() {
 
       {/* Chart */}
       {chartData.length > 0 && (
-        <Card withBorder p="md">
-          <Text fw={500} mb="sm">Zdarzenia wg typu</Text>
+        <Card style={cardStyle} p="md">
+          <Text fw={600} mb="sm" style={{ color: "#171a1e" }}>Zdarzenia wg typu</Text>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" fontSize={12} />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke="#dadada" />
+              <XAxis dataKey="name" fontSize={12} tick={{ fill: "#171a1e" }} />
+              <YAxis tick={{ fill: "#171a1e" }} />
               <Tooltip />
-              <Bar dataKey="count" fill="var(--mantine-color-blue-6)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="#007ecc" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -115,6 +136,9 @@ export function PaywallTab() {
           onChange={(v) => { setEventType(v); setPage(1); }}
           clearable
           w={250}
+          styles={{
+            input: { borderColor: "#dadada", fontSize: "0.875rem" },
+          }}
         />
       </Group>
 
@@ -158,7 +182,7 @@ export function PaywallTab() {
         minHeight={200}
         rowExpansion={{
           content: ({ record }) => (
-            <Stack p="md" gap="xs">
+            <Stack p="md" gap="xs" style={{ backgroundColor: "#f7f8fc" }}>
               <Text size="sm" fw={500}>Pelne dane:</Text>
               <Code block>{JSON.stringify(record.payload, null, 2)}</Code>
             </Stack>

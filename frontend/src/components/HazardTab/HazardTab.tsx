@@ -12,6 +12,7 @@ import {
   Loader,
   Table,
   Pagination,
+  Box,
 } from "@mantine/core";
 import { IconRefresh, IconSearch, IconAlertTriangle, IconWorld, IconClock } from "@tabler/icons-react";
 import { DataTable } from "mantine-datatable";
@@ -24,6 +25,12 @@ import {
 } from "../../api/hooks";
 import { useAppStore } from "../../stores/useAppStore";
 import dayjs from "dayjs";
+
+const cardStyle = {
+  border: "1px solid #dadada",
+  borderRadius: "0.375rem",
+  backgroundColor: "#fff",
+};
 
 export function HazardTab() {
   const [page, setPage] = useState(1);
@@ -42,47 +49,55 @@ export function HazardTab() {
     setPage(1);
   };
 
-  if (statusLoading) return <Loader />;
+  if (statusLoading) return <Loader color="#007ecc" />;
 
   return (
     <Stack>
       {/* Status cards */}
       <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}>
-        <Card withBorder>
+        <Card style={{ ...cardStyle, borderTop: "3px solid #007ecc" }} p="md">
           <Group>
-            <IconWorld size={24} color="var(--mantine-color-blue-6)" />
+            <Box style={{ backgroundColor: "rgba(0,126,204,0.1)", borderRadius: "0.375rem", padding: 8 }}>
+              <IconWorld size={24} color="#007ecc" />
+            </Box>
             <div>
-              <Text size="xs" c="dimmed">Domeny w rejestrze</Text>
-              <Text fw={700} size="xl">{status?.totalDomains?.toLocaleString()}</Text>
+              <Text size="xs" c="dimmed" fw={500}>Domeny w rejestrze</Text>
+              <Text fw={700} size="xl" style={{ color: "#171a1e" }}>{status?.totalDomains?.toLocaleString()}</Text>
             </div>
           </Group>
         </Card>
-        <Card withBorder>
+        <Card style={{ ...cardStyle, borderTop: "3px solid #fdb82b" }} p="md">
           <Group>
-            <IconAlertTriangle size={24} color="var(--mantine-color-orange-6)" />
+            <Box style={{ backgroundColor: "rgba(253,184,43,0.1)", borderRadius: "0.375rem", padding: 8 }}>
+              <IconAlertTriangle size={24} color="#fdb82b" />
+            </Box>
             <div>
-              <Text size="xs" c="dimmed">Aktywne domeny</Text>
-              <Text fw={700} size="xl">{status?.activeDomains?.toLocaleString()}</Text>
+              <Text size="xs" c="dimmed" fw={500}>Aktywne domeny</Text>
+              <Text fw={700} size="xl" style={{ color: "#171a1e" }}>{status?.activeDomains?.toLocaleString()}</Text>
             </div>
           </Group>
         </Card>
-        <Card withBorder>
+        <Card style={{ ...cardStyle, borderTop: "3px solid #f50084" }} p="md">
           <Group>
-            <IconAlertTriangle size={24} color="var(--mantine-color-red-6)" />
+            <Box style={{ backgroundColor: "rgba(245,0,132,0.1)", borderRadius: "0.375rem", padding: 8 }}>
+              <IconAlertTriangle size={24} color="#f50084" />
+            </Box>
             <div>
-              <Text size="xs" c="dimmed">Alerty</Text>
-              <Text fw={700} size="xl" c={status?.activeAlerts ? "red" : undefined}>
+              <Text size="xs" c="dimmed" fw={500}>Alerty</Text>
+              <Text fw={700} size="xl" style={{ color: status?.activeAlerts ? "#f50084" : "#171a1e" }}>
                 {status?.activeAlerts || 0}
               </Text>
             </div>
           </Group>
         </Card>
-        <Card withBorder>
+        <Card style={{ ...cardStyle, borderTop: "3px solid #a4a6b3" }} p="md">
           <Group>
-            <IconClock size={24} color="var(--mantine-color-gray-6)" />
+            <Box style={{ backgroundColor: "rgba(164,166,179,0.1)", borderRadius: "0.375rem", padding: 8 }}>
+              <IconClock size={24} color="#a4a6b3" />
+            </Box>
             <div>
-              <Text size="xs" c="dimmed">Ostatni sync</Text>
-              <Text fw={500} size="sm">
+              <Text size="xs" c="dimmed" fw={500}>Ostatni sync</Text>
+              <Text fw={500} size="sm" style={{ color: "#171a1e" }}>
                 {status?.lastSync ? dayjs(status.lastSync.finishedAt).format("DD.MM.YYYY HH:mm") : "Brak"}
               </Text>
             </div>
@@ -96,6 +111,7 @@ export function HazardTab() {
           leftSection={<IconRefresh size={16} />}
           onClick={() => checkNow.mutate()}
           loading={checkNow.isPending}
+          style={{ backgroundColor: "#007ecc", borderRadius: "0.375rem" }}
         >
           Sprawdz teraz
         </Button>
@@ -103,8 +119,8 @@ export function HazardTab() {
 
       {/* Alerts section */}
       {alerts && alerts.length > 0 && (
-        <Card withBorder p="md">
-          <Title order={5} mb="sm" c="red">
+        <Card style={cardStyle} p="md">
+          <Title order={5} mb="sm" style={{ color: "#f50084" }}>
             Alerty - dopasowane domeny sklepow
           </Title>
           <DataTable
@@ -135,8 +151,8 @@ export function HazardTab() {
       )}
 
       {/* Domain search & browser */}
-      <Card withBorder p="md">
-        <Title order={5} mb="sm">Przegladarka rejestru domen hazardowych</Title>
+      <Card style={cardStyle} p="md">
+        <Title order={5} mb="sm" style={{ color: "#171a1e" }}>Przegladarka rejestru domen hazardowych</Title>
         <Group mb="md">
           <TextInput
             placeholder="Szukaj domeny..."
@@ -145,8 +161,15 @@ export function HazardTab() {
             onChange={(e) => setSearchInput(e.currentTarget.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             style={{ flex: 1 }}
+            styles={{
+              input: { borderColor: "#dadada", fontSize: "0.875rem" },
+            }}
           />
-          <Button onClick={handleSearch} variant="light">
+          <Button
+            onClick={handleSearch}
+            variant="light"
+            style={{ borderRadius: "0.375rem" }}
+          >
             Szukaj
           </Button>
         </Group>
@@ -188,11 +211,11 @@ export function HazardTab() {
 
       {/* Sync log */}
       {syncLog && syncLog.length > 0 && (
-        <Card withBorder p="md">
-          <Title order={5} mb="sm">Historia synchronizacji</Title>
+        <Card style={cardStyle} p="md">
+          <Title order={5} mb="sm" style={{ color: "#171a1e" }}>Historia synchronizacji</Title>
           <Table striped highlightOnHover>
             <Table.Thead>
-              <Table.Tr>
+              <Table.Tr style={{ backgroundColor: "#f7f8fc" }}>
                 <Table.Th>Typ</Table.Th>
                 <Table.Th>Data</Table.Th>
                 <Table.Th>Status</Table.Th>
