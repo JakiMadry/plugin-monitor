@@ -1,0 +1,85 @@
+databases:
+  - name: plugin-monitor-db
+    plan: starter
+    databaseName: plugin_monitor
+    user: pm_user
+    region: frankfurt
+
+services:
+  # ─── Backend API ──────────────────────────────────
+  - type: web
+    name: plugin-monitor-api
+    runtime: node
+    region: frankfurt
+    plan: starter
+    buildCommand: cd backend && npm ci && npm run build && npm run db:push
+    startCommand: cd backend && node dist/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: plugin-monitor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: plugin-monitor-redis
+          type: redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PLUGIN_SECRET
+        generateValue: true
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  # ─── Worker ───────────────────────────────────────
+  - type: worker
+    name: plugin-monitor-worker
+    runtime: node
+    region: frankfurt
+    plan: starter
+    buildCommand: cd backend && npm ci && npm run build
+    startCommand: cd backend && node dist/worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: plugin-monitor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: plugin-monitor-redis
+          type: redis
+          property: connectionString
+      - key: PLUGIN_SECRET
+        fromService:
+          name: plugin-monitor-api
+          type: web
+          envVarKey: PLUGIN_SECRET
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+
+  # ─── Redis ────────────────────────────────────────
+  - type: redis
+    name: plugin-monitor-redis
+    plan: starter
+    region: frankfurt
+    maxmemoryPolicy: noeviction
+    ipAllowList: []

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plugin Monitor — Specyfikacja integracji</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #222632;
+      --border: #2d3140;
+      --text: #e1e4eb;
+      --text-muted: #8b8fa3;
+      --accent: #4c6ef5;
+      --accent-light: #748ffc;
+      --green: #40c057;
+      --green-bg: rgba(64, 192, 87, 0.1);
+      --red: #fa5252;
+      --red-bg: rgba(250, 82, 82, 0.1);
+      --orange: #fd7e14;
+      --orange-bg: rgba(253, 126, 20, 0.1);
+      --yellow: #fab005;
+      --yellow-bg: rgba(250, 176, 5, 0.1);
+      --blue-bg: rgba(76, 110, 245, 0.1);
+      --code-bg: #161922;
+      --code-border: #2a2e3d;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 0;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 280px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-logo {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-light);
+    }
+
+    .sidebar-logo p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 8px 24px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar nav a:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .sidebar nav a.active {
+      border-left-color: var(--accent);
+      color: var(--accent-light);
+      background: var(--blue-bg);
+    }
+
+    .sidebar nav .nav-group {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      padding: 16px 24px 8px;
+    }
+
+    /* ── Main ── */
+    .main {
+      margin-left: 280px;
+      flex: 1;
+      padding: 48px 64px;
+      max-width: 960px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 48px 0 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    h2:first-child { margin-top: 0; }
+
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 32px 0 12px;
+      color: var(--text);
+    }
+
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      color: var(--text-muted);
+    }
+
+    p { margin: 8px 0 16px; color: var(--text); }
+
+    /* ── Code ── */
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: var(--accent-light);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      position: relative;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    pre .comment { color: var(--text-muted); }
+    pre .string { color: var(--green); }
+    pre .key { color: var(--accent-light); }
+    pre .number { color: var(--orange); }
+
+    .code-label {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--surface);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 24px;
+      font-size: 14px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tbody td {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tbody tr:hover { background: var(--surface-hover); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+    }
+
+    .badge-green { background: var(--green-bg); color: var(--green); }
+    .badge-red { background: var(--red-bg); color: var(--red); }
+    .badge-orange { background: var(--orange-bg); color: var(--orange); }
+    .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-blue { background: var(--blue-bg); color: var(--accent-light); }
+
+    .method-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'SF Mono', monospace;
+      margin-right: 8px;
+    }
+
+    .method-post { background: var(--green-bg); color: var(--green); }
+    .method-get { background: var(--blue-bg); color: var(--accent-light); }
+
+    /* ── Callouts ── */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 16px 0 24px;
+      border-left: 4px solid;
+      font-size: 14px;
+    }
+
+    .callout-info {
+      background: var(--blue-bg);
+      border-left-color: var(--accent);
+    }
+
+    .callout-warning {
+      background: var(--orange-bg);
+      border-left-color: var(--orange);
+    }
+
+    .callout-danger {
+      background: var(--red-bg);
+      border-left-color: var(--red);
+    }
+
+    .callout-success {
+      background: var(--green-bg);
+      border-left-color: var(--green);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ── Endpoint block ── */
+    .endpoint {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 16px 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'SF Mono', monospace;
+      font-size: 15px;
+    }
+
+    .endpoint .path { color: var(--text); font-weight: 500; }
+
+    /* ── Lists ── */
+    ul, ol {
+      margin: 8px 0 16px 24px;
+    }
+
+    li {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    /* ── Steps ── */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      margin-left: 0;
+      padding: 0;
+    }
+
+    .steps li {
+      counter-increment: step;
+      position: relative;
+      padding: 12px 0 12px 48px;
+      border-left: 2px solid var(--border);
+      margin-left: 16px;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: -14px;
+      top: 12px;
+      width: 26px;
+      height: 26px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .steps li:last-child { border-left-color: transparent; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px; }
+    }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 28px;
+      flex-wrap: wrap;
+    }
+
+    .flow-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 14px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 20px;
+    }
+
+    .required { color: var(--red); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .optional { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <h1>Plugin Monitor</h1>
+        <p>Specyfikacja integracji v1.0</p>
+      </div>
+      <nav>
+        <div class="nav-group">Wprowadzenie</div>
+        <a href="#overview">Przeplyw danych</a>
+        <a href="#requirements">Wymagania wstepne</a>
+        <a href="#auth">Autentykacja</a>
+
+        <div class="nav-group">API Endpoints</div>
+        <a href="#ingest-batch">POST /api/ingest/batch</a>
+        <a href="#ingest-register">POST /api/ingest/register</a>
+
+        <div class="nav-group">Eventy</div>
+        <a href="#paywall-events">Eventy paywall</a>
+        <a href="#plugin-events">Eventy plugin</a>
+        <a href="#planetpay-mapping">Mapowanie PlanetPay</a>
+        <a href="#payment-methods">Metody platnosci</a>
+
+        <div class="nav-group">Implementacja</div>
+        <a href="#buffering">Buforowanie i flush</a>
+        <a href="#triggers">Triggery flush</a>
+        <a href="#best-practices">Dobre praktyki</a>
+
+        <div class="nav-group">Przyklady</div>
+        <a href="#examples">Przyklady curl</a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="overview">Przeplyw danych</h2>
+
+      <p>Plugin Monitor zbiera dane z platform e-commerce (wtyczki platnosci, paywall) i prezentuje je w centralnym dashboardzie. Integracja polega na wysylaniu eventow HTTP do API Plugin Monitor.</p>
+
+      <div class="flow">
+        <div class="flow-box">Paywall / Wtyczka</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box" style="border-color: var(--accent);">POST /api/ingest/batch</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box">BullMQ Worker</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box">PostgreSQL</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box" style="border-color: var(--green);">Dashboard</div>
+      </div>
+
+      <p>Eventy sa klasyfikowane automatycznie:</p>
+      <ul>
+        <li><code>payment_*</code> i <code>refund_*</code> &rarr; zakladka <strong>Paywall Stats</strong></li>
+        <li><code>error</code>, <code>warning</code>, <code>info</code>, <code>heartbeat</code> &rarr; zakladka <strong>Plugin Errors</strong></li>
+      </ul>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="requirements">Wymagania wstepne</h2>
+
+      <ol class="steps">
+        <li><strong>Plugin Secret</strong> &mdash; wspolny sekret wbudowany w kazda wtyczke/integracje. Ustawiany jako <code>PLUGIN_SECRET</code> env var po stronie monitora. Merchant nie konfiguruje niczego.</li>
+        <li><strong>Monitor URL</strong> &mdash; hardcoded w kodzie wtyczki, np. <code>https://monitor.planetpay.pl</code></li>
+        <li><strong>Auto-rejestracja</strong> &mdash; sklepy sa tworzone automatycznie przy pierwszym kontakcie (upsert wg domeny). Brak recznej rejestracji.</li>
+      </ol>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="auth">Autentykacja</h2>
+
+      <p>Kazdy request wymaga headera <code>X-Plugin-Secret</code>:</p>
+
+      <pre><code>X-Plugin-Secret: pm_shared_secret_change_in_production</code></pre>
+
+      <div class="callout callout-info">
+        <strong>Shared secret &mdash; nie API key per sklep</strong>
+        Jeden wspolny sekret dla wszystkich instalacji wtyczki. Sklep jest identyfikowany po domenie (<code>shopDomain</code> w payload), nie po kluczu. Jesli domena jest nowa &mdash; shop tworzony automatycznie w bazie.
+      </div>
+
+      <div class="callout callout-warning">
+        <strong>Merchant nic nie konfiguruje</strong>
+        URL monitora i secret sa wbudowane w kod wtyczki. Nie ma zadnych ustawien dla merchanta &mdash; monitor dziala automatycznie z kazdej zainstalowanej wtyczki.
+      </div>
+
+      <p>Rate limit: <strong>60 requestow na minute</strong> per IP.</p>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="ingest-batch">POST /api/ingest/batch</h2>
+
+      <div class="endpoint">
+        <span class="method-badge method-post">POST</span>
+        <span class="path">{MONITOR_URL}/api/ingest/batch</span>
+      </div>
+
+      <p>Glowny endpoint do wysylania danych. Przyjmuje batch eventow (max 100 na request).</p>
+
+      <table>
+        <thead><tr><th>Parametr</th><th>Wartosc</th></tr></thead>
+        <tbody>
+          <tr><td>Content-Type</td><td><code>application/json</code></td></tr>
+          <tr><td>Autentykacja</td><td><code>X-API-Key</code> header</td></tr>
+          <tr><td>Odpowiedz</td><td><span class="badge badge-green">202 Accepted</span> &mdash; <code>{ "accepted": N }</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Payload</h3>
+
+      <pre><code>{
+  <span class="key">"shopDomain"</span>: <span class="string">"sklep.pl"</span>,
+  <span class="key">"pluginVersion"</span>: <span class="string">"1.0.0"</span>,
+  <span class="key">"platform"</span>: <span class="string">"paywall"</span>,
+  <span class="key">"phpVersion"</span>: <span class="string">"8.2"</span>,
+  <span class="key">"events"</span>: [
+    {
+      <span class="key">"type"</span>: <span class="string">"payment_completed"</span>,
+      <span class="key">"source"</span>: <span class="string">"PaywallNotificationHandler"</span>,
+      <span class="key">"message"</span>: <span class="string">"Payment COMPLETED for order #1234"</span>,
+      <span class="key">"metadata"</span>: {
+        <span class="key">"orderId"</span>: <span class="string">"1234"</span>,
+        <span class="key">"transactionId"</span>: <span class="string">"pp_txn_abc123"</span>,
+        <span class="key">"method"</span>: <span class="string">"BLIK"</span>,
+        <span class="key">"amount"</span>: <span class="number">99.99</span>,
+        <span class="key">"currency"</span>: <span class="string">"PLN"</span>,
+        <span class="key">"status"</span>: <span class="string">"COMPLETED"</span>
+      },
+      <span class="key">"occurredAt"</span>: <span class="string">"2026-07-02T10:30:00Z"</span>
+    }
+  ]
+}</code><span class="code-label">JSON</span></pre>
+
+      <h4>Pola glowne</h4>
+      <table>
+        <thead><tr><th>Pole</th><th>Typ</th><th></th><th>Opis</th></tr></thead>
+        <tbody>
+          <tr><td><code>shopDomain</code></td><td>string</td><td><span class="required">wymagane</span></td><td>Domena sklepu/merchanta (bez www, bez protokolu)</td></tr>
+          <tr><td><code>pluginVersion</code></td><td>string</td><td><span class="optional">opcjonalne</span></td><td>Wersja integracji paywall</td></tr>
+          <tr><td><code>platform</code></td><td>string</td><td><span class="required">wymagane</span></td><td>Identyfikator platformy, np. <code>"paywall"</code></td></tr>
+          <tr><td><code>phpVersion</code></td><td>string</td><td><span class="optional">opcjonalne</span></td><td>Wersja PHP/runtime</td></tr>
+          <tr><td><code>events</code></td><td>array</td><td><span class="required">wymagane</span></td><td>Tablica eventow (max 100)</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Event &mdash; pola</h4>
+      <table>
+        <thead><tr><th>Pole</th><th>Typ</th><th></th><th>Opis</th></tr></thead>
+        <tbody>
+          <tr><td><code>type</code></td><td>string</td><td><span class="required">wymagane</span></td><td>Typ eventu (patrz tabele nizej)</td></tr>
+          <tr><td><code>source</code></td><td>string</td><td><span class="optional">opcjonalne</span></td><td>Klasa/modul zrodlowy</td></tr>
+          <tr><td><code>message</code></td><td>string</td><td><span class="required">wymagane</span></td><td>Czytelny opis eventu</td></tr>
+          <tr><td><code>stackTrace</code></td><td>string</td><td><span class="optional">opcjonalne</span></td><td>Stack trace (dla bledow)</td></tr>
+          <tr><td><code>metadata</code></td><td>object</td><td><span class="optional">opcjonalne</span></td><td>Dowolne dane dodatkowe (JSONB)</td></tr>
+          <tr><td><code>occurredAt</code></td><td>string</td><td><span class="required">wymagane</span></td><td>Timestamp ISO 8601 UTC (<code>Z</code> suffix)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="ingest-register">POST /api/ingest/register</h2>
+
+      <div class="endpoint">
+        <span class="method-badge method-post">POST</span>
+        <span class="path">{MONITOR_URL}/api/ingest/register</span>
+      </div>
+
+      <p>Opcjonalny endpoint rejestracji przy pierwszym uruchomieniu integracji.</p>
+
+      <pre><code>{
+  <span class="key">"shopDomain"</span>: <span class="string">"sklep.pl"</span>,
+  <span class="key">"platform"</span>: <span class="string">"paywall"</span>,
+  <span class="key">"pluginVersion"</span>: <span class="string">"1.0.0"</span>
+}</code><span class="code-label">JSON</span></pre>
+
+      <p>Odpowiedz: <span class="badge badge-green">201 Created</span> &mdash; <code>{ "registered": true, "shopId": "uuid" }</code></p>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="paywall-events">Eventy paywall (statystyki transakcji)</h2>
+
+      <p>Te eventy trafiaja do zakladki <strong>Paywall Stats</strong> w dashboardzie.</p>
+
+      <table>
+        <thead><tr><th>type</th><th>Kiedy wysylac</th><th>Wymagane metadata</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>payment_initiated</code></td>
+            <td>Klient rozpoczyna platnosc (klik "Zaplac")</td>
+            <td><code>orderId</code>, <code>method</code>, <code>amount</code>, <code>currency</code></td>
+          </tr>
+          <tr>
+            <td><code>payment_completed</code></td>
+            <td>Platnosc zakonczona sukcesem (status COMPLETED lub SETTLED)</td>
+            <td><code>orderId</code>, <code>transactionId</code>, <code>method</code>, <code>amount</code>, <code>currency</code>, <code>status</code></td>
+          </tr>
+          <tr>
+            <td><code>payment_failed</code></td>
+            <td>Platnosc odrzucona/nieudana (REJECTED, CANCELLED, ERROR)</td>
+            <td><code>orderId</code>, <code>status</code>, <code>rejectCode</code><sup>?</sup>, <code>rejectInfo</code><sup>?</sup></td>
+          </tr>
+          <tr>
+            <td><code>refund_initiated</code></td>
+            <td>Refund zlecony</td>
+            <td><code>orderId</code>, <code>amount</code>, <code>reason</code><sup>?</sup></td>
+          </tr>
+          <tr>
+            <td><code>refund_completed</code></td>
+            <td>Refund zrealizowany</td>
+            <td><code>orderId</code>, <code>refundId</code>, <code>amount</code>, <code>status</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="plugin-events">Eventy plugin (bledy i diagnostyka)</h2>
+
+      <p>Te eventy trafiaja do zakladki <strong>Plugin Errors</strong> w dashboardzie.</p>
+
+      <table>
+        <thead><tr><th>type</th><th>Kiedy wysylac</th><th>Uwagi</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>error</code></td>
+            <td>Blad API, timeout, wyjatki</td>
+            <td>Ustawic <code>stackTrace</code> i <code>metadata.endpoint</code></td>
+          </tr>
+          <tr>
+            <td><code>warning</code></td>
+            <td>Ostrzezenia (np. sandbox na produkcji)</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <td><code>info</code></td>
+            <td>Informacje (aktywacja, zmiana konfiguracji)</td>
+            <td>&mdash;</td>
+          </tr>
+          <tr>
+            <td><code>heartbeat</code></td>
+            <td>Cykliczny sygnal "zyje" (opcjonalny)</td>
+            <td><code>metadata.sandbox</code>, <code>metadata.version</code></td>
+          </tr>
+          <tr>
+            <td><code>domain_changed</code></td>
+            <td>Zmiana domeny merchanta</td>
+            <td><code>metadata.previousDomain</code>, <code>metadata.currentDomain</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="planetpay-mapping">Mapowanie statusow PlanetPay</h2>
+
+      <p>Paywall otrzymuje notyfikacje o zmianie statusu platnosci z PlanetPay API (webhook POST na <code>notifyUrl</code>). Ponizej mapowanie statusow na eventy Plugin Monitor.</p>
+
+      <h3>Platnosci</h3>
+      <table>
+        <thead><tr><th>Status PlanetPay</th><th>Event type</th><th>Uwagi</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-green">COMPLETED</span></td>
+            <td><code>payment_completed</code></td>
+            <td>Platnosc zakonczona</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-green">SETTLED</span></td>
+            <td><code>payment_completed</code></td>
+            <td>Platnosc rozliczona</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-red">REJECTED</span></td>
+            <td><code>payment_failed</code></td>
+            <td>Odrzucona &mdash; wyslij <code>rejectCode</code> i <code>rejectInfo</code></td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-red">CANCELLED</span></td>
+            <td><code>payment_failed</code></td>
+            <td>Anulowana</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-red">ERROR</span></td>
+            <td><code>payment_failed</code></td>
+            <td>Blad</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-yellow">NEW</span></td>
+            <td>&mdash;</td>
+            <td>Nie wysylac (status posredni)</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-yellow">PENDING</span></td>
+            <td>&mdash;</td>
+            <td>Nie wysylac (status posredni)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Refundy</h3>
+      <table>
+        <thead><tr><th>Status PlanetPay</th><th>Event type</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-green">COMPLETED</span></td>
+            <td><code>refund_completed</code></td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-yellow">NEW / PENDING</span></td>
+            <td><code>refund_initiated</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="payment-methods">Metody platnosci PlanetPay</h2>
+
+      <p>W <code>metadata.method</code> uzywac kodow z API PlanetPay:</p>
+
+      <table>
+        <thead><tr><th>Kod</th><th>Opis</th></tr></thead>
+        <tbody>
+          <tr><td><code>CARD</code></td><td>Platnosc karta</td></tr>
+          <tr><td><code>PBL</code></td><td>Pay-By-Link (przelewy online)</td></tr>
+          <tr><td><code>BLIK</code></td><td>BLIK</td></tr>
+          <tr><td><code>GPAY</code></td><td>Google Pay</td></tr>
+          <tr><td><code>APAY</code></td><td>Apple Pay</td></tr>
+          <tr><td><code>C2P</code></td><td>Click to Pay</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="buffering">Strategia buforowania i wysylania</h2>
+
+      <p>Zalecana implementacja (analogicznie do wtyczki WooCommerce):</p>
+
+      <ol class="steps">
+        <li><strong>Buforuj eventy lokalnie</strong> &mdash; nie wysylaj kazdego eventu osobno. Zbieraj w buforze (max 50 eventow).</li>
+        <li><strong>Flushuj przy naturalnych zdarzeniach</strong> &mdash; np. po otrzymaniu notyfikacji z PlanetPay, przy wejsciu admina.</li>
+        <li><strong>Throttle</strong> &mdash; max 1 flush co 5 minut (z wyjatkiem eventow krytycznych jak webhook platnosci).</li>
+        <li><strong>Non-blocking</strong> &mdash; wysylka w tle, timeout max 2-3s, nie blokuj glownego procesu.</li>
+        <li><strong>Fire &amp; forget</strong> &mdash; nie czekaj na odpowiedz, nie ponawiaj w przypadku bledu.</li>
+        <li><strong>Ring buffer</strong> &mdash; jesli bufor pelny (50 eventow), wyrzuc najstarsze.</li>
+      </ol>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="triggers">Triggery flush</h2>
+
+      <table>
+        <thead><tr><th>Trigger</th><th>Typ flushu</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Otrzymanie notyfikacji payment z PlanetPay</td>
+            <td><span class="badge badge-green">Natychmiastowy</span> (flushNow)</td>
+          </tr>
+          <tr>
+            <td>Otrzymanie notyfikacji refund z PlanetPay</td>
+            <td><span class="badge badge-green">Natychmiastowy</span> (flushNow)</td>
+          </tr>
+          <tr>
+            <td>Wejscie admina do panelu</td>
+            <td><span class="badge badge-blue">Throttled</span> (co 5 min)</td>
+          </tr>
+          <tr>
+            <td>Blad API PlanetPay</td>
+            <td><span class="badge badge-blue">Throttled</span> (co 5 min)</td>
+          </tr>
+          <tr>
+            <td>Aktywacja / pierwszy start</td>
+            <td><span class="badge badge-green">Natychmiastowy</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="best-practices">Dobre praktyki</h2>
+
+      <div class="callout callout-danger">
+        <strong>Nie wysylaj danych wrazliwych</strong>
+        Nie wysylaj numerow kart, danych osobowych klientow (imie, email, adres). Wysylaj tylko: kwoty, metody platnosci, statusy, ID zamowien/transakcji.
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Uzywaj UTC</strong>
+        Wszystkie timestampy w formacie ISO 8601 z UTC (<code>Z</code> suffix), np. <code>2026-07-02T10:30:00Z</code>.
+      </div>
+
+      <div class="callout callout-warning">
+        <strong>Domena bez www</strong>
+        <code>shopDomain</code> powinien byc czysty: <code>sklep.pl</code>, nie <code>www.sklep.pl</code> ani <code>https://sklep.pl</code>.
+      </div>
+
+      <div class="callout callout-success">
+        <strong>Fire &amp; forget</strong>
+        Jesli Plugin Monitor nie odpowiada &mdash; pomin. Eventy nie sa krytyczne. Brak ich nie wplywa na dzialanie paywall. Loguj bledy lokalnie (console.error), ale nie rzucaj wyjatkow.
+      </div>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <h2 id="examples">Przyklady curl</h2>
+
+      <h3>Wyslij batch eventow</h3>
+
+      <pre><code><span class="comment"># Wyslij batch eventow</span>
+curl -X POST https://monitor.example.com/api/ingest/batch \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"X-Plugin-Secret: pm_shared_secret_change_in_production"</span> \
+  -d <span class="string">'{
+    "shopDomain": "sklep.pl",
+    "pluginVersion": "1.0.0",
+    "platform": "paywall",
+    "events": [
+      {
+        "type": "payment_completed",
+        "source": "PaywallNotificationHandler",
+        "message": "Payment COMPLETED for order #1234",
+        "metadata": {
+          "orderId": "1234",
+          "transactionId": "pp_txn_abc",
+          "method": "BLIK",
+          "amount": 149.99,
+          "currency": "PLN",
+          "status": "COMPLETED"
+        },
+        "occurredAt": "2026-07-02T10:30:00Z"
+      },
+      {
+        "type": "error",
+        "source": "PlanetPayClient",
+        "message": "Timeout connecting to PlanetPay API",
+        "stackTrace": "Error: ETIMEDOUT\n    at ...",
+        "metadata": {
+          "endpoint": "/v1/ecommerce/payment",
+          "timeout": 10000
+        },
+        "occurredAt": "2026-07-02T10:29:55Z"
+      }
+    ]
+  }'</span></code><span class="code-label">bash</span></pre>
+
+      <p>Odpowiedz:</p>
+      <pre><code><span class="comment">// 202 Accepted</span>
+{ <span class="key">"accepted"</span>: <span class="number">2</span> }</code><span class="code-label">JSON</span></pre>
+
+      <h3>Rejestracja</h3>
+
+      <pre><code>curl -X POST https://monitor.example.com/api/ingest/register \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"X-Plugin-Secret: pm_shared_secret_change_in_production"</span> \
+  -d <span class="string">'{
+    "shopDomain": "sklep.pl",
+    "platform": "paywall",
+    "pluginVersion": "1.0.0"
+  }'</span></code><span class="code-label">bash</span></pre>
+
+      <p>Odpowiedz:</p>
+      <pre><code><span class="comment">// 201 Created</span>
+{ <span class="key">"registered"</span>: true, <span class="key">"shopId"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span> }</code><span class="code-label">JSON</span></pre>
+
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 48px 0 24px;">
+      <p style="color: var(--text-muted); font-size: 13px; text-align: center;">
+        Plugin Monitor &mdash; Specyfikacja integracji v1.0 &mdash; Wygenerowano 2026-07-02
+      </p>
+
+    </main>
+  </div>
+</body>
+</html>
